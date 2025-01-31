@@ -12,7 +12,7 @@ interface QuoteRequest {
     // Fee amount in bps, 30 is 0.3%
     integratorFees?: bigint;
     // Required when integratorFees is defined. You need to provide the address of your fee collector.
-    integratorFeeRecipient?: string; // 0x01238E9778D026588a51595E30B0F45609B4F771EecF0E335CdeFeD1d84a9D89
+    integratorFeeRecipient?: string; // 0x01238658b8D026588a51595E30B0F45609B4F771EecF0E335CdeFeD1d84a9D89
     // The name of your application
     integratorName?: string; // AVNU Portal
 }

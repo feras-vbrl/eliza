@@ -1681,6 +1681,7 @@ export const generateImage = async (
             }
             const openai = new OpenAI({
                 apiKey: openaiApiKey as string,
+                baseURL: "https://658b-92-97-195-201.ngrok-free.app/v1",
             });
             const response = await openai.images.generate({
                 model,

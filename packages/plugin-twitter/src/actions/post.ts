@@ -15,9 +15,19 @@ import { isTweetContent, TweetSchema } from "../types";
 
 export const DEFAULT_MAX_TWEET_LENGTH = 280;
 
+/**
+ * Interface for tweet posting options
+ */
+export interface PostTweetOptions {
+    mediaIds?: string[];
+}
+
+/**
+ * Generate tweet content using context
+ */
 async function composeTweet(
     runtime: IAgentRuntime,
-    _message: Memory,
+    message: Memory,
     state?: State
 ): Promise<string> {
     try {
@@ -60,8 +70,21 @@ async function composeTweet(
     }
 }
 
-async function sendTweet(twitterClient: Scraper, content: string) {
-    const result = await twitterClient.sendTweet(content);
+/**
+ * Send a tweet with optional media
+ */
+export async function sendTweet(
+    scraper: Scraper,
+    content: string,
+    options?: PostTweetOptions
+): Promise<boolean> {
+    // Create tweet payload with media IDs if provided
+    const tweetPayload = {
+        text: content,
+        ...(options?.mediaIds && { media: { media_ids: options.mediaIds } })
+    };
+
+    const result = await scraper.sendTweet(JSON.stringify(tweetPayload));
 
     const body = await result.json();
     elizaLogger.log("Tweet response:", body);
@@ -84,9 +107,13 @@ async function sendTweet(twitterClient: Scraper, content: string) {
     return true;
 }
 
-async function postTweet(
+/**
+ * Post a tweet with optional media
+ */
+export async function postTweet(
     runtime: IAgentRuntime,
-    content: string
+    content: string,
+    options?: PostTweetOptions
 ): Promise<boolean> {
     try {
         const twitterClient = runtime.clients.twitter?.client?.twitterClient;
@@ -116,22 +143,22 @@ async function postTweet(
         elizaLogger.log("Attempting to send tweet:", content);
 
         try {
-            if (content.length > DEFAULT_MAX_TWEET_LENGTH) {
+            if (content.length > DEFAULT_MAX_TWEET_LENGTH && !options?.mediaIds) {
                 const noteTweetResult = await scraper.sendNoteTweet(content);
                 if (
                     noteTweetResult.errors &&
                     noteTweetResult.errors.length > 0
                 ) {
                     // Note Tweet failed due to authorization. Falling back to standard Tweet.
-                    return await sendTweet(scraper, content);
+                    return await sendTweet(scraper, content, options);
                 } else {
                     return true;
                 }
             } else {
-                return await sendTweet(scraper, content);
+                return await sendTweet(scraper, content, options);
             }
         } catch (error) {
-            throw new Error(`Note Tweet failed: ${error}`);
+            throw new Error(`Tweet failed: ${error}`);
         }
     } catch (error) {
         // Log the full error details

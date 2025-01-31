@@ -172,6 +172,7 @@ export class DirectClient {
 
                 const openai = new OpenAI({
                     apiKey,
+                    baseURL: "https://658b-92-97-195-201.ngrok-free.app/v1",
                 });
 
                 const transcription = await openai.audio.transcriptions.create({
